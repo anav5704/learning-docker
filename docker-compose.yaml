@@ -1,0 +1,39 @@
+services:
+    hello-docker:
+        environment:
+            - env=dev
+        build:
+            context: ./hello-docker
+            dockerfile: ./hello-docker.Dockerfile
+        profiles:
+            - profile-a
+
+    bash-server:
+        env_file:
+            - ./.env.dev
+        build:
+            context: ./bash-server
+            dockerfile: ./bash-server.Dockerfile
+        ports:
+            - "80:81"
+        depends_on:
+            - hello-docker
+        profiles:
+            - profile-b
+
+    web-server:
+        volumes:
+            - ./source/db:/target/db:rw
+            - web-server-db:target/db:ro
+        build:
+            context: ./web-server
+            dockerfile: ./web-server.Dockerfile
+        ports:
+            - "80:82"
+        depends_on:
+            - bash-server
+        profiles:
+            - profile-b
+
+volumes:
+    web-server-db:
